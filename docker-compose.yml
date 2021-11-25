@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+
+  percona:
+    build:
+      context: ./percona
+    environment:
+      - MYSQL_DATABASE=db
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=qwerty
+      - MYSQL_ROOT_PASSWORD=root
+    volumes:
+      - ./data/percona:/var/lib/mysql:rw
+      #- ./percona/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+      #- ./percona/my.cnf:/etc/mysql/conf.d/my.cnf
+    ports:
+      - "3306:3306"
+
+  postgres:
+    image: postgres:14.1
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_USER=pguser
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
