@@ -24,14 +24,16 @@ def test(query:str, level:str):
         if line.startswith(' '):
             if line.strip().startswith('[FETCH]'):
                 for row in c2:
-                    print('c2:', row)
+                    print('   ', row)
             else:
+                print(line)
                 c2.execute(line[1:])
         else:
             if line.strip().startswith('[FETCH]'):
                 for row in c1:
-                    print('c1:', row)
+                    print(row)
             else:
+                print(line)
                 c1.execute(line)
 
     c1.close()
@@ -40,18 +42,22 @@ def test(query:str, level:str):
     conn2.close()
 
 def test_with_levels(query):
+    print('\r\n')
     create_table()
     print('READ UNCOMMITTED:')
     test(query, 'READ UNCOMMITTED')
 
+    print('\r\n')
     create_table()
     print('READ COMMITTED:')
     test(query, 'READ COMMITTED')
 
+    print('\r\n')
     create_table()
     print('REPEATABLE READ:')
     test(query, 'REPEATABLE READ')
 
+    print('\r\n')
     create_table()
     print('SERIALIZABLE:')
     test(query, 'SERIALIZABLE')
@@ -133,13 +139,13 @@ SELECT * FROM users WHERE id=2;
 [FETCH]
 """
 
-#print("Non-repeatable reads:")
-#test_with_levels(non_repeatable_reads_query)
-#print("Phantom reads:")
-#test_with_levels(phantom_reads_query)
-#print("Dirty reads:")
-#test_with_levels(dirty_reads_query)
-print("Lost update:")
-test_with_levels(lost_update_query )
+print("Non-repeatable reads:")
+test_with_levels(non_repeatable_reads_query)
+print("Phantom reads:")
+test_with_levels(phantom_reads_query)
+print("Dirty reads:")
+test_with_levels(dirty_reads_query)
+#print("Lost update:")
+#test_with_levels(lost_update_query )
 
 

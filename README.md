@@ -235,3 +235,193 @@ ROLLBACK;
     COMMIT;
 ```
 	
+
+## PostgreSQL test results
+
+
+###Non-repeatable reads:
+
+
+#### READ UNCOMMITTED:
+
+```
+BEGIN TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+    BEGIN TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+SELECT * FROM users WHERE id = 1;
+(1, 'Darth Vader', 'death star', 50)
+    UPDATE users SET password = '3333333' WHERE id = 1;
+    COMMIT; 
+SELECT * FROM users WHERE id = 1;
+(1, 'Darth Vader', '3333333', 50)
+COMMIT;
+```
+
+
+#### READ COMMITTED:
+```
+BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+    BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+SELECT * FROM users WHERE id = 1;
+(1, 'Darth Vader', 'death star', 50)
+    UPDATE users SET password = '3333333' WHERE id = 1;
+    COMMIT;
+SELECT * FROM users WHERE id = 1;
+(1, 'Darth Vader', '3333333', 50)
+COMMIT;
+```
+
+
+#### REPEATABLE READ:
+```
+BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+    BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+SELECT * FROM users WHERE id = 1;
+(1, 'Darth Vader', 'death star', 50)
+    UPDATE users SET password = '3333333' WHERE id = 1;
+    COMMIT; 
+SELECT * FROM users WHERE id = 1;
+(1, 'Darth Vader', 'death star', 50)
+COMMIT;
+```
+
+
+#### SERIALIZABLE:
+```
+BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+    BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+SELECT * FROM users WHERE id = 1;
+(1, 'Darth Vader', 'death star', 50)
+    UPDATE users SET password = '3333333' WHERE id = 1;
+    COMMIT;
+SELECT * FROM users WHERE id = 1;
+(1, 'Darth Vader', 'death star', 50)
+COMMIT;
+```
+
+
+### Phantom reads:
+
+
+#### READ UNCOMMITTED:
+```
+BEGIN TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+    BEGIN TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+SELECT * FROM users WHERE id>2;
+(3, 'Chewbakka', 'rrraarGhhrraarr', 123)
+(4, 'R2D2', 'peep-peeep', 444)
+    INSERT INTO users(username, password) VALUES ('Masgister Yoda', 'murmurmur');
+    COMMIT;
+SELECT * FROM users WHERE id>2;
+(3, 'Chewbakka', 'rrraarGhhrraarr', 123)
+(4, 'R2D2', 'peep-peeep', 444)
+(5, 'Masgister Yoda', 'murmurmur', None)
+COMMIT;
+```
+
+
+#### READ COMMITTED:
+```
+BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+    BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+SELECT * FROM users WHERE id>2;
+(3, 'Chewbakka', 'rrraarGhhrraarr', 123)
+(4, 'R2D2', 'peep-peeep', 444)
+    INSERT INTO users(username, password) VALUES ('Masgister Yoda', 'murmurmur');
+    COMMIT;
+SELECT * FROM users WHERE id>2;
+(3, 'Chewbakka', 'rrraarGhhrraarr', 123)
+(4, 'R2D2', 'peep-peeep', 444)
+(5, 'Masgister Yoda', 'murmurmur', None)
+COMMIT;
+```
+
+
+#### REPEATABLE READ:
+```
+BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+    BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+SELECT * FROM users WHERE id>2;
+(3, 'Chewbakka', 'rrraarGhhrraarr', 123)
+(4, 'R2D2', 'peep-peeep', 444)
+    INSERT INTO users(username, password) VALUES ('Masgister Yoda', 'murmurmur');
+    COMMIT;
+SELECT * FROM users WHERE id>2;
+(3, 'Chewbakka', 'rrraarGhhrraarr', 123)
+(4, 'R2D2', 'peep-peeep', 444)
+COMMIT;
+```
+
+
+#### SERIALIZABLE:
+```
+BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+    BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+SELECT * FROM users WHERE id>2;
+(3, 'Chewbakka', 'rrraarGhhrraarr', 123)
+(4, 'R2D2', 'peep-peeep', 444)
+    INSERT INTO users(username, password) VALUES ('Masgister Yoda', 'murmurmur');
+    COMMIT;
+SELECT * FROM users WHERE id>2;
+(3, 'Chewbakka', 'rrraarGhhrraarr', 123)
+(4, 'R2D2', 'peep-peeep', 444)
+COMMIT;
+```
+
+
+### Dirty reads:
+
+
+#### READ UNCOMMITTED:
+```
+BEGIN TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+    BEGIN TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+    SELECT * FROM users WHERE id = 1;
+    (1, 'Darth Vader', 'death star', 50)
+UPDATE users SET password = 'qwerty' WHERE id = 1;
+    SELECT * FROM users WHERE id = 1;
+    (1, 'Darth Vader', 'death star', 50)
+ROLLBACK;
+    COMMIT;
+```
+
+
+#### READ COMMITTED:
+```
+BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+    BEGIN TRANSACTION ISOLATION LEVEL READ COMMITTED;
+    SELECT * FROM users WHERE id = 1;
+    (1, 'Darth Vader', 'death star', 50)
+UPDATE users SET password = 'qwerty' WHERE id = 1;
+    SELECT * FROM users WHERE id = 1;
+    (1, 'Darth Vader', 'death star', 50)
+ROLLBACK;
+    COMMIT;
+```
+
+
+#### REPEATABLE READ:
+```
+BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+    BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+    SELECT * FROM users WHERE id = 1;
+    (1, 'Darth Vader', 'death star', 50)
+UPDATE users SET password = 'qwerty' WHERE id = 1;
+    SELECT * FROM users WHERE id = 1;
+    (1, 'Darth Vader', 'death star', 50)
+ROLLBACK;
+    COMMIT;
+```
+
+
+#### SERIALIZABLE:
+```
+BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+    BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+    SELECT * FROM users WHERE id = 1;
+    (1, 'Darth Vader', 'death star', 50)
+UPDATE users SET password = 'qwerty' WHERE id = 1;
+    SELECT * FROM users WHERE id = 1;
+    (1, 'Darth Vader', 'death star', 50)
+ROLLBACK;
+    COMMIT;
+```

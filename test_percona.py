@@ -155,12 +155,12 @@ SELECT * FROM users WHERE id=2;
 [FETCH]
 """
 
-#print("Non-repeatable reads:")
-#test_with_levels(non_repeatable_reads_query)
-#print("Phantom reads:")
-#test_with_levels(phantom_reads_query)
-#print("Dirty reads:")
-#test_with_levels(dirty_reads_query)
+print("Non-repeatable reads:")
+test_with_levels(non_repeatable_reads_query)
+print("Phantom reads:")
+test_with_levels(phantom_reads_query)
+print("Dirty reads:")
+test_with_levels(dirty_reads_query)
 #print("Lost update:")
 #test_with_levels(lost_update_query )
 
