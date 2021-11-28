@@ -21,16 +21,16 @@ def test(query:str, level:str):
     c2 = conn2.cursor()
 
     for line in query:
-        if line.startswith('\t'):
-            if line[1:].startswith('[FETCH]'):
+        if line.startswith(' '):
+            if line.strip().startswith('[FETCH]'):
                 for row in c2:
-                    print(row)
+                    print('c2:', row)
             else:
                 c2.execute(line[1:])
         else:
-            if line.startswith('[FETCH]'):
+            if line.strip().startswith('[FETCH]'):
                 for row in c1:
-                    print(row)
+                    print('c1:', row)
             else:
                 c1.execute(line)
 
@@ -59,25 +59,25 @@ def test_with_levels(query):
 
 dirty_reads_query = """
 BEGIN TRANSACTION ISOLATION LEVEL [LEVEL];
-	BEGIN TRANSACTION ISOLATION LEVEL [LEVEL]; 
+    BEGIN TRANSACTION ISOLATION LEVEL [LEVEL]; 
 
-	SELECT * FROM users WHERE id = 1;
-	[FETCH]
+    SELECT * FROM users WHERE id = 1;
+    [FETCH]
 UPDATE users SET password = 'qwerty' WHERE id = 1;
-	SELECT * FROM users WHERE id = 1;
-	[FETCH]
+    SELECT * FROM users WHERE id = 1;
+    [FETCH]
 
 ROLLBACK;
-	COMMIT;
+    COMMIT;
 """
 
 non_repeatable_reads_query = """
 BEGIN TRANSACTION ISOLATION LEVEL [LEVEL];
-	BEGIN TRANSACTION ISOLATION LEVEL [LEVEL]; 
+    BEGIN TRANSACTION ISOLATION LEVEL [LEVEL]; 
 SELECT * FROM users WHERE id = 1;
 [FETCH]
-	UPDATE users SET password = '3333333' WHERE id = 1;
-	COMMIT; 
+    UPDATE users SET password = '3333333' WHERE id = 1;
+    COMMIT; 
 SELECT * FROM users WHERE id = 1;
 [FETCH]
 COMMIT;
@@ -85,7 +85,7 @@ COMMIT;
 
 phantom_reads_query = """
 BEGIN TRANSACTION ISOLATION LEVEL [LEVEL];
-	BEGIN TRANSACTION ISOLATION LEVEL [LEVEL]; 
+    BEGIN TRANSACTION ISOLATION LEVEL [LEVEL]; 
 
 SELECT * FROM users WHERE id>2;
 [FETCH]
@@ -98,7 +98,7 @@ COMMIT;
 
 lost_update_query = """
 BEGIN TRANSACTION ISOLATION LEVEL [LEVEL];
-	BEGIN TRANSACTION ISOLATION LEVEL [LEVEL]; 
+    BEGIN TRANSACTION ISOLATION LEVEL [LEVEL]; 
 
 UPDATE users SET age = age+10 WHERE id = 2;
 
@@ -109,17 +109,28 @@ SELECT * FROM users WHERE id=2;
 COMMIT;
 """
 
-lost_update_query = """
+blocking_query = """
 BEGIN TRANSACTION ISOLATION LEVEL [LEVEL];
-	BEGIN TRANSACTION ISOLATION LEVEL [LEVEL]; 
+    BEGIN TRANSACTION ISOLATION LEVEL [LEVEL]; 
 
-select age into aaa from users where id = 2;
-select aaa;
+SELECT * FROM users WHERE id=2;
 [FETCH]
 
-    UPDATE users SET age = age+5 WHERE id = 2;
+UPDATE users SET password = '111111111' WHERE id = 2;
+
+SELECT * FROM users WHERE id=2;
+[FETCH]
+
+    SELECT * FROM users WHERE id=2;
+    [FETCH]
+    UPDATE users SET password = '22222222222' WHERE id = 2;
+    SELECT * FROM users WHERE id=2;
+    [FETCH]
     COMMIT;
+
 COMMIT;
+SELECT * FROM users WHERE id=2;
+[FETCH]
 """
 
 #print("Non-repeatable reads:")
