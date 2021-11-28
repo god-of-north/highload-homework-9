@@ -239,7 +239,7 @@ ROLLBACK;
 ## PostgreSQL test results
 
 
-###Non-repeatable reads:
+### Non-repeatable reads:
 
 
 #### READ UNCOMMITTED:
