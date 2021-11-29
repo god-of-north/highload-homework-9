@@ -1,5 +1,3 @@
-import time
-import timeout_decorator
 import mysql.connector
 
 
